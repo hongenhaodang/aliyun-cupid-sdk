@@ -1,31 +1,16 @@
 usage="Usage: sh Create-AliSpark-2.x-APP.sh <app_name> <target_path>"
+sh Create-AliSpark-2.x-APP.sh spark-2.x-demo /tmp/
+cd /tmp/spark-2.x-demo
+mvn clean package
 
-if [ $# -ne 2 ]; then
-    echo $usage
-    exit 1
-fi
+# 冒烟测试 
+# 1 利用编译出来的shaded jar包
+# 2 按照文档所示下载MaxCompute Spark客户端
+# 3 参考文档”置环境变量”指引，填写MaxCompute项目相关配置项
 
-cupidRoot=$(cd `dirname $0`; cd ..; pwd)
-appName=$1
-targetPath=$2
-
-if [ ! -d "$targetPath" ]; then
-    echo "$targetPath is not exist, plz create before run."
-    exit 1
-fi
-
-# will try to install archetypes in local mvn repo
-pushd $cupidRoot/archetypes/spark-2.x/
-mvn clean install
-popd
-
-# create the template maven app into targetPath
-pushd $targetPath
-mvn archetype:generate -DarchetypeGroupId=com.aliyun.odps \
-                       -DarchetypeArtifactId=AliSpark-2.x-quickstart \
-                       -DarchetypeVersion=1.0-SNAPSHOT \
-                       -DgroupId=com.aliyun.odps \
-                       -DartifactId=${appName} \
-                       -DinteractiveMode=false
-popd
+# 执行spark-submit命令 如下
+$SPARK_HOME/bin/spark-submit \
+        --master yarn-cluster \
+        --class SparkPi \
+      /tmp/spark-2.x-demo/target/AliSpark-2.x-quickstart-1.0-SNAPSHOT-shaded.jar
 
